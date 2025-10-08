@@ -1,0 +1,25 @@
+TanStack Query (previously called React Query) is a data-fetching and state management 
+library for React (and other frameworks).
+
+It helps you handle server state (data that lives on a server, like API responses 
+from REST or GraphQL) in your React app.
+
+🔑 Why it exists
+
+In React, managing async data from an API is tricky:
+
+You usually need useState + useEffect + fetch/axios.
+
+You also have to manually handle loading, error, refetching, caching, etc.
+
+If the same data is needed in multiple components, you either refetch unnecessarily or 
+create a global state solution.
+
+TanStack Query solves this by handling all of that for you.
+
+
+1-useQuery → Read data (GET)
+
+2-useMutation → Write / change data (POST, PUT, DELETE)
+In TanStack Query, useMutation is a hook used for modifying data on the server
+(e.g., POST, PUT, PATCH, DELETE requests).
