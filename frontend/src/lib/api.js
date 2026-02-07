@@ -58,7 +58,13 @@ export const acceptFriendRequest = async (requestId) => {
   return response.data;
 };
 
-export const getStreamToken = async () => {
-  const response = await axiosInstance.get("/chat/token");
+export const getMessages = async (userId, options = {}) => {
+  const params = new URLSearchParams();
+  if (options.before) params.set("before", String(options.before));
+  if (options.limit) params.set("limit", String(options.limit));
+  const query = params.toString();
+  const response = await axiosInstance.get(
+    `/messages/${userId}${query ? `?${query}` : ""}`
+  );
   return response.data;
 };

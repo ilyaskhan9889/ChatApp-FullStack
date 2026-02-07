@@ -1,4 +1,12 @@
 services:
+  dynamodb:
+    image: amazon/dynamodb-local:latest
+    command: "-jar DynamoDBLocal.jar -sharedDb -dbPath /home/dynamodblocal/data"
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./dynamodb-data:/home/dynamodblocal/data
+
   mysql:
     image: mysql:8
     ports:
@@ -27,21 +35,25 @@ services:
       MYSQL_USER: "${MYSQL_USER}"
       MYSQL_PASSWORD: "${MYSQL_PASSWORD}"
       JWT_SECRET_KEY: "${JWT_SECRET_KEY}"
-      STREAM_API_KEY: "${STREAM_API_KEY}"
-      STREAM_API_SECRET: "${STREAM_API_SECRET}"
       CLIENT_URL: "http://localhost:5173"
+      DYNAMO_REGION: "us-east-1"
+      DYNAMO_ENDPOINT: "http://dynamodb:8000"
+      DYNAMO_MESSAGES_TABLE: "Messages"
+      DYNAMO_AUTO_CREATE_TABLE: "true"
+      AWS_ACCESS_KEY_ID: "local"
+      AWS_SECRET_ACCESS_KEY: "local"
     ports:
       - "5001:5001"
     depends_on:
       mysql:
         condition: service_healthy
+      dynamodb:
+        condition: service_started
     restart: unless-stopped
 
   frontend:
     build:
       context: ./frontend
-      args:
-        VITE_STREAM_API_KEY: "${VITE_STREAM_API_KEY}"
     ports:
       - "5173:5173"
     depends_on:

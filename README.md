@@ -1,6 +1,6 @@
 # ChatApp - MERN Stack Chat Application
 
-A real-time chat application built with the **MERN stack** (MongoDB, Express.js, React.js, Node.js), styled with **Tailwind CSS**, integrated with **Stream.io** for real-time messaging, and containerized using **Docker**. This app allows users to create accounts, add friends, and chat in real-time.
+A real-time chat application built with the **MERN stack** (MongoDB, Express.js, React.js, Node.js), styled with **Tailwind CSS**, powered by **Socket.IO** for real-time messaging, and containerized using **Docker**. This app allows users to create accounts, add friends, and chat in real-time.
 
 ---
 
@@ -8,8 +8,8 @@ A real-time chat application built with the **MERN stack** (MongoDB, Express.js,
 
 - **Frontend:** React.js, Tailwind CSS, Vite  
 - **Backend:** Node.js, Express.js  
-- **Database:** MongoDB  
-- **Real-Time Messaging:** [Stream.io](https://getstream.io/)  
+- **Database:** Mysql (users/friends) + DynamoDB (messages)  
+- **Real-Time Messaging:** Socket.IO  
 - **Containerization:** Docker, Docker Compose  
 - **Version Control:** Git, GitHub  
 
@@ -19,7 +19,7 @@ A real-time chat application built with the **MERN stack** (MongoDB, Express.js,
 
 - User registration and authentication  
 - Add, accept, and manage friends  
-- Real-time chat using Stream.io  
+- Real-time chat using Socket.IO  
 - Responsive and modern UI with Tailwind CSS  
 - Fully containerized backend, frontend, and database  
 - Easily deployable using Docker  
@@ -97,10 +97,13 @@ Create a .env file in the backend folder with the following:
 env
 Copy code
 PORT=5001
-MONGO_URL=mongodb://mongo:27017/chatapp
 JWT_SECRET=your_jwt_secret
-STREAM_API_KEY=your_stream_api_key
-STREAM_API_SECRET=your_stream_api_secret
+DYNAMO_REGION=us-east-1
+DYNAMO_ENDPOINT=http://localhost:8000
+DYNAMO_MESSAGES_TABLE=Messages
+DYNAMO_AUTO_CREATE_TABLE=true
+AWS_ACCESS_KEY_ID=local
+AWS_SECRET_ACCESS_KEY=local
 
 
 Production Build
@@ -111,7 +114,6 @@ Database: Persistent Docker volume
 
 Useful Links
 
-Stream.io Documentation
 Tailwind CSS
 Docker Documentation
 

@@ -7,9 +7,6 @@ RUN npm ci
 
 COPY . .
 
-ARG VITE_STREAM_API_KEY
-ENV VITE_STREAM_API_KEY=$VITE_STREAM_API_KEY
-
 RUN npm run build
 
 FROM nginx:alpine

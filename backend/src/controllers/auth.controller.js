@@ -1,5 +1,4 @@
 import { User } from "../models/index.js";
-import { upsertStreamUser } from "../lib/stream.js";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 dotenv.config();
@@ -31,17 +30,6 @@ export async function signup(req, res) {
       profile: randomAvatar,
     });
 
-    try {
-      await upsertStreamUser({
-        id: newUser._id.toString(),
-        name: newUser.fullName,
-        image: newUser.profile || "",
-      });
-      console.log(`Stream user created for ${newUser.fullName}`);
-    } catch (error) {
-      console.log("Error creating Stream user:", error);
-    }
-
     const token = jwt.sign(
       { userId: newUser._id },
       process.env.JWT_SECRET_KEY,
@@ -51,10 +39,11 @@ export async function signup(req, res) {
     );
     const safeUser = newUser.get({ plain: true });
     delete safeUser.password;
+    const isProd = process.env.NODE_ENV === "production";
     res.cookie("jwt", token, {
-      httpOnly: true, //prevent xss attacks
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict", // prevent csrf attacks
+      httpOnly: true, // prevent xss attacks
+      secure: isProd,
+      sameSite: isProd ? "none" : "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
     res.status(201).json({
@@ -86,10 +75,11 @@ export async function login(req, res) {
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET_KEY, {
       expiresIn: "7d",
     });
+    const isProd = process.env.NODE_ENV === "production";
     res.cookie("jwt", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV !== "development", // only true in prod/https
-      sameSite: process.env.NODE_ENV === "development" ? "lax" : "none", // allow cross-site in dev
+      secure: isProd,
+      sameSite: isProd ? "none" : "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -106,10 +96,11 @@ export async function login(req, res) {
   }
 }
 export function logout(req, res) {
+  const isProd = process.env.NODE_ENV === "production";
   res.clearCookie("jwt", {
     httpOnly: true,
-    secure: process.env.NODE_ENV !== "development",
-    sameSite: process.env.NODE_ENV === "development" ? "lax" : "none",
+    secure: isProd,
+    sameSite: isProd ? "none" : "lax",
   });
   res.status(200).json({ success: true, message: "Logout successful" });
 }
@@ -147,17 +138,6 @@ export async function onboard(req, res) {
     if (!updatedUser) {
       return res.status(404).json({ message: "User not found" });
     }
-    try {
-      await upsertStreamUser({
-        id: updatedUser._id.toString(),
-        name: updatedUser.fullName,
-        image: updatedUser.profile || "",
-      }); // update stream user details if needed
-      console.log(`Stream user updated for ${updatedUser.fullName}`);
-    } catch (streamError) {
-      console.log("Error updating Stream user:", streamError.message);
-    }
-
     return res.status(200).json({
       success: true,
       user: updatedUser,
