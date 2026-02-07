@@ -1,0 +1,44 @@
+services:
+  mysql:
+    image: mysql:8
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD}"
+      MYSQL_DATABASE: "${MYSQL_DB}"
+      MYSQL_USER: "${MYSQL_USER}"
+      MYSQL_PASSWORD: "${MYSQL_PASSWORD}"
+
+  backend:
+    build:
+      context: ./backend
+    environment:
+      PORT: "5001"
+      MYSQL_HOST: "mysql"
+      MYSQL_PORT: "3306"
+      MYSQL_DB: "${MYSQL_DB}"
+      MYSQL_USER: "${MYSQL_USER}"
+      MYSQL_PASSWORD: "${MYSQL_PASSWORD}"
+      JWT_SECRET_KEY: "${JWT_SECRET_KEY}"
+      STREAM_API_KEY: "${STREAM_API_KEY}"
+      STREAM_API_SECRET: "${STREAM_API_SECRET}"
+      CLIENT_URL: "http://localhost:5173"
+    ports:
+      - "5001:5001"
+    depends_on:
+      - mysql
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_STREAM_API_KEY: "${VITE_STREAM_API_KEY}"
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+
+volumes:
+  mysql_data:

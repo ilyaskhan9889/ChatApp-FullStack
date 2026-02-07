@@ -1,4 +1,4 @@
-import { User } from "../models/User.js";
+import { User } from "../models/index.js";
 import { upsertStreamUser } from "../lib/stream.js";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
@@ -18,7 +18,7 @@ export async function signup(req, res) {
     if (!emailRegex.test(email)) {
       return res.status(400).json({ message: "Invalid email format" });
     }
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({ where: { email } });
     if (existingUser) {
       return res.status(400).json({ message: "Email already in use" });
     }
@@ -49,6 +49,8 @@ export async function signup(req, res) {
         expiresIn: "7d",
       }
     );
+    const safeUser = newUser.get({ plain: true });
+    delete safeUser.password;
     res.cookie("jwt", token, {
       httpOnly: true, //prevent xss attacks
       secure: process.env.NODE_ENV === "production",
@@ -57,7 +59,7 @@ export async function signup(req, res) {
     });
     res.status(201).json({
       success: true,
-      user: newUser,
+      user: safeUser,
       message: "User created successfully",
     });
   } catch (error) {
@@ -71,7 +73,9 @@ export async function login(req, res) {
     if (!email || !password) {
       return res.status(400).json({ message: "All fields are required" });
     }
-    const user = await User.findOne({ email });
+    const user = await User.scope("withPassword").findOne({
+      where: { email },
+    });
     if (!user) {
       return res.status(400).json({ message: "Invalid email or password" });
     }
@@ -89,7 +93,13 @@ export async function login(req, res) {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    res.status(200).json({ success: true, user, message: "Login successful" });
+    const safeUser = user.get({ plain: true });
+    delete safeUser.password;
+    res.status(200).json({
+      success: true,
+      user: safeUser,
+      message: "Login successful",
+    });
   } catch (error) {
     console.error("Error during login:", error);
     return res.status(500).json({ message: "Internal Server error" });
@@ -127,16 +137,13 @@ export async function onboard(req, res) {
         ].filter(Boolean),
       });
     } // check for missing fields
-    const updatedUser = await User.findByIdAndUpdate(
-      userId,
-      {
-        ...req.body, // spread the req.body to update all fields
+    const updatedUser = await User.findByPk(userId);
+    if (updatedUser) {
+      await updatedUser.update({
+        ...req.body,
         isOnboarded: true,
-      },
-      {
-        new: true, // return the updated document
-      }
-    ); // find user by ID and update
+      });
+    }
     if (!updatedUser) {
       return res.status(404).json({ message: "User not found" });
     }

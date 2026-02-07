@@ -14,9 +14,10 @@ const PORT = process.env.PORT || 5001;
 const __dirname = path.resolve();
 app.use(express.json());
 app.use(cookieParser());
+const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
 app.use(
   cors({
-    origin: "http://localhost:5173", //your frontend URL
+    origin: clientUrl,
     credentials: true, // Allow cookies to be sent
   })
 );

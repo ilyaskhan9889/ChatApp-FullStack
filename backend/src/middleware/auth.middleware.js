@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import {User} from '../models/User.js';
+import { User } from "../models/index.js";
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -14,7 +14,7 @@ export const protectRoute = async (req, res, next) => {
         if (!decoded) {
             return res.status(401).json({ message: 'Token is not valid' });
         }
-        const user = await User.findById(decoded.userId).select("-password");// Find user by ID
+        const user = await User.findByPk(decoded.userId);// Find user by ID
         if (!user) {
             return res.status(401).json({ message: 'User not found, authorization denied' });
         }
