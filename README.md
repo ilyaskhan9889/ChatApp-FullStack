@@ -115,3 +115,4 @@ Stream.io Documentation
 Tailwind CSS
 Docker Documentation
 
+# ChatApp
