@@ -10,6 +10,11 @@ services:
       MYSQL_DATABASE: "${MYSQL_DB}"
       MYSQL_USER: "${MYSQL_USER}"
       MYSQL_PASSWORD: "${MYSQL_PASSWORD}"
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u$$MYSQL_USER -p$$MYSQL_PASSWORD || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
 
   backend:
     build:
@@ -28,7 +33,9 @@ services:
     ports:
       - "5001:5001"
     depends_on:
-      - mysql
+      mysql:
+        condition: service_healthy
+    restart: unless-stopped
 
   frontend:
     build:
